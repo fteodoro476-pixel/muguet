@@ -21,22 +21,22 @@ jobs:
           rustup toolchain install 1.98.1
           rustup target add aarch64-apple-ios --toolchain 1.98.1
 
-      - name: Install xcodegen
-        run: brew install xcodegen
+      - name: Install xcodegen and binaryen
+        run: brew install xcodegen binaryen
+
+      - name: Download game.wasm
+        env:
+          GH_TOKEN: ${{ secrets.MUGUET_PAT }}
+        run: gh release download --repo fteodoro476-pixel/muguet-files --pattern game.wasm --dir .
 
       - name: Build iOS App
         run: |
           xcodebuild -version
-          mkdir -p build
-          FREE=1 BUNDLE_ID=com.muguet.game ./make-ios.sh --ipa
-
-      - name: Find IPA
-        if: always()
-        run: find . -name "*.ipa" -not -path "./vendor/*" 2>/dev/null || true
+          FREE=1 BUNDLE_ID=com.fteodoro.muguet ./make-ios.sh game.wasm --ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Muguet-iOS-IPA
-          path: build/*.ipa
+          path: build/Muguet.ipa
           if-no-files-found: error
